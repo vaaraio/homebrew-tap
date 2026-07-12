@@ -6,8 +6,11 @@ Homebrew formulae for [Vaara](https://github.com/vaaraio/vaara), the policy gate
 
 ```bash
 brew tap vaaraio/tap
+brew trust vaaraio/tap
 brew install vaara
 ```
+
+Recent Homebrew versions require the `brew trust` step once for any tap outside homebrew-core; if your brew has no `trust` command, skip that line.
 
 This installs the `vaara`, `vaara-audit`, `vaara-mcp-proxy`, and `vaara-mcp-server` commands. The core has no Python dependencies beyond the interpreter.
 
