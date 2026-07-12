@@ -1,0 +1,80 @@
+name: Bump formula from PyPI
+
+# Keeps Formula/vaara.rb pinned to the latest sdist on PyPI.
+# Runs on a schedule (releases land within ~6h) and on manual dispatch
+# for an immediate bump right after a release.
+
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump-formula
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      - name: Read latest sdist from PyPI
+        id: pypi
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 https://pypi.org/pypi/vaara/json -o /tmp/pypi.json
+          VERSION="$(jq -r '.info.version' /tmp/pypi.json)"
+          COUNT="$(jq '[.urls[] | select(.packagetype == "sdist")] | length' /tmp/pypi.json)"
+          if [ "$COUNT" != "1" ]; then
+            echo "::error::Expected exactly 1 sdist for vaara ${VERSION}, got ${COUNT}"
+            exit 1
+          fi
+          URL="$(jq -r '[.urls[] | select(.packagetype == "sdist")][0].url' /tmp/pypi.json)"
+          SHA256="$(jq -r '[.urls[] | select(.packagetype == "sdist")][0].digests.sha256' /tmp/pypi.json)"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          echo "sha256=${SHA256}" >> "$GITHUB_OUTPUT"
+          echo "PyPI latest: vaara ${VERSION} (${URL})"
+
+      - name: Check whether the formula is already current
+        id: check
+        run: |
+          set -euo pipefail
+          if grep -qF '${{ steps.pypi.outputs.sha256 }}' Formula/vaara.rb; then
+            echo "Formula already pins vaara ${{ steps.pypi.outputs.version }}; nothing to do."
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify the sdist matches the published digest
+        if: steps.check.outputs.current == 'false'
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 -o /tmp/sdist.tar.gz '${{ steps.pypi.outputs.url }}'
+          echo '${{ steps.pypi.outputs.sha256 }}  /tmp/sdist.tar.gz' | sha256sum -c -
+
+      - name: Update Formula/vaara.rb
+        if: steps.check.outputs.current == 'false'
+        run: |
+          set -euo pipefail
+          sed -i -E 's|^  url ".*"$|  url "${{ steps.pypi.outputs.url }}"|' Formula/vaara.rb
+          sed -i -E 's|^  sha256 ".*"$|  sha256 "${{ steps.pypi.outputs.sha256 }}"|' Formula/vaara.rb
+          grep -qF '${{ steps.pypi.outputs.url }}' Formula/vaara.rb
+          grep -qF '${{ steps.pypi.outputs.sha256 }}' Formula/vaara.rb
+          git diff Formula/vaara.rb
+
+      - name: Commit and push
+        if: steps.check.outputs.current == 'false'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898994+github-actions[bot]@users.noreply.github.com"
+          git add Formula/vaara.rb
+          git commit -m 'vaara ${{ steps.pypi.outputs.version }}'
+          git push
