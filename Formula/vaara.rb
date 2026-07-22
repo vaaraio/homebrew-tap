@@ -3,8 +3,8 @@ class Vaara < Formula
 
   desc "Policy gate and signed, verifiable audit trail for AI agent tool calls"
   homepage "https://vaara.io"
-  url "https://files.pythonhosted.org/packages/41/9f/a67f83a62331d1d29aadc52b25e25350beff1b51efc65da93a6cd45c04eb/vaara-1.39.0.tar.gz"
-  sha256 "67226e8089a68d9d1eaa6286cdaf55cb20b270fee711ec9ecce5303c55f645f7"
+  url "https://files.pythonhosted.org/packages/41/bc/ebd67f0a8f11cf0f5ed2bad62f8ee0d89111e04e1fdde51853f7ae21951a/vaara-1.41.0.tar.gz"
+  sha256 "55d3a08af2e45bb7c542c4b7165c999530c5dafe19770b756828f4307c70eb45"
   license "AGPL-3.0-or-later"
 
   depends_on "python@3.13"
