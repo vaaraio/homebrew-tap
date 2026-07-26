@@ -9,10 +9,6 @@ class Vaara < Formula
 
   depends_on "python@3.13"
 
-  on_macos do
-    depends_on xcode: :build
-  end
-
   def install
     # Install the Python CLI into a virtualenv (zero runtime dependencies)
     venv = virtualenv_create(libexec, "python3.13")
@@ -23,7 +19,8 @@ class Vaara < Formula
     end
 
     # On macOS, also build and install the menu-bar app from source.
-    # Builds locally, so no Gatekeeper quarantine and no Developer ID needed.
+    # Builds locally with just Xcode Command Line Tools, so no Gatekeeper
+    # quarantine and no Developer ID needed.
     on_macos do
       cd "clients/macos" do
         system "swift", "build", "-c", "release"
