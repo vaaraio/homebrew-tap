@@ -1,15 +1,13 @@
 class Vaara < Formula
   include Language::Python::Virtualenv
 
-  desc "Policy gate and signed, verifiable audit trail for AI agent tool calls"
+  desc "Tamper-evident runtime evidence layer for AI agents"
   homepage "https://vaara.io"
-  url "https://github.com/vaaraio/vaara/archive/refs/tags/v1.51.1.tar.gz"
-  sha256 "335110885a4840cb5d1796b4c96fd18cf434e55e4e188987e61fae38b47c4829"
+  url "https://github.com/vaaraio/vaara/archive/refs/tags/v1.52.0.tar.gz"
+  sha256 "c306f687f6bbdf5099dd08aad60b4ab86785fdf46a0522ff2049127688a9385d"
   license "AGPL-3.0-or-later"
 
   depends_on "python@3.13"
-
-  patch :DATA
 
   def install
     venv = virtualenv_create(libexec, "python3.13")
@@ -83,22 +81,3 @@ class Vaara < Formula
     end
   end
 end
-
-__END__
-diff --git a/clients/macos/Sources/VaaraMenuBar/VaaraApp.swift b/clients/macos/Sources/VaaraMenuBar/VaaraApp.swift
---- a/clients/macos/Sources/VaaraMenuBar/VaaraApp.swift
-+++ b/clients/macos/Sources/VaaraMenuBar/VaaraApp.swift
-@@ -33,9 +33,10 @@
-     }
- 
-     private func markImage(for state: GateState) -> NSImage {
--        if let url = Bundle.module.url(
--            forResource: "icons/vaara-\(state.rawValue)", withExtension: "png"),
--           let img = NSImage(contentsOf: url) {
-+        let bundle = Bundle.main
-+        let resourcePath = bundle.resourcePath ?? ""
-+        let iconPath = "\(resourcePath)/icons/vaara-\(state.rawValue).png"
-+        if let img = NSImage(contentsOfFile: iconPath) {
-             return img
-         }
-         let color = stateColor(state)
