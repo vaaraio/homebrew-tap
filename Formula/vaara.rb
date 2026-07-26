@@ -3,17 +3,86 @@ class Vaara < Formula
 
   desc "Policy gate and signed, verifiable audit trail for AI agent tool calls"
   homepage "https://vaara.io"
-  url "https://files.pythonhosted.org/packages/0d/95/fe8d965ef8c8abcbed579353b9c82a955b09013e598a0230507a2b3f1117/vaara-1.51.1.tar.gz"
-  sha256 "3573c29661fa12199af788db54da29d34857f5fedd12216bf8bb97b3a7f1efa8"
+  url "https://github.com/vaaraio/vaara/archive/refs/tags/v1.51.1.tar.gz"
+  sha256 "335110885a4840cb5d1796b4c96fd18cf434e55e4e188987e61fae38b47c4829"
   license "AGPL-3.0-or-later"
 
   depends_on "python@3.13"
 
+  on_macos do
+    depends_on xcode: :build
+  end
+
   def install
-    virtualenv_install_with_resources
+    # Install the Python CLI into a virtualenv (zero runtime dependencies)
+    venv = virtualenv_create(libexec, "python3.13")
+    venv.pip_install buildpath
+
+    %w[vaara vaara-audit vaara-mcp-proxy vaara-mcp-server].each do |cmd|
+      bin.install_symlink libexec/"bin"/cmd
+    end
+
+    # On macOS, also build and install the menu-bar app from source.
+    # Builds locally, so no Gatekeeper quarantine and no Developer ID needed.
+    on_macos do
+      cd "clients/macos" do
+        system "swift", "build", "-c", "release"
+
+        binary = ".build/release/VaaraMenuBar"
+        bundle = Dir[".build/release/*VaaraMenuBar*.bundle"].first
+
+        app = prefix/"Vaara.app"
+        (app/"Contents/MacOS").mkpath
+        (app/"Contents/Resources").mkpath
+
+        cp binary, app/"Contents/MacOS/Vaara"
+        cp bundle, app/"Contents/MacOS/" if bundle && File.exist?(bundle)
+        cp "AppIcon.icns", app/"Contents/Resources/"
+
+        (app/"Contents/Info.plist").write <<~PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key><string>Vaara</string>
+            <key>CFBundleDisplayName</key><string>Vaara</string>
+            <key>CFBundleIdentifier</key><string>io.vaara.menubar</string>
+            <key>CFBundleVersion</key><string>#{version}</string>
+            <key>CFBundleShortVersionString</key><string>#{version}</string>
+            <key>CFBundleExecutable</key><string>Vaara</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>LSMinimumSystemVersion</key><string>13.0</string>
+            <key>LSUIElement</key><true/>
+            <key>CFBundleIconFile</key><string>AppIcon</string>
+          </dict>
+          </plist>
+        PLIST
+
+        system "codesign", "--force", "--deep", "--sign", "-", app
+      end
+    end
+  end
+
+  def caveats
+    on_macos do
+      <<~EOS
+        The Vaara menu-bar app is installed to:
+          #{opt_prefix}/Vaara.app
+
+        To install it:
+          cp -R #{opt_prefix}/Vaara.app /Applications/
+          open /Applications/Vaara.app
+
+        Add it to System Settings > General > Login Items to start with macOS.
+      EOS
+    end
   end
 
   test do
     assert_match version.to_s, shell_output("#{bin}/vaara version")
+    on_macos do
+      assert_predicate prefix/"Vaara.app/Contents/MacOS/Vaara", :exist?
+    end
   end
 end
