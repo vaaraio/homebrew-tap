@@ -9,8 +9,12 @@ class Vaara < Formula
 
   depends_on "python@3.13"
 
+  # Patch Bundle.module -> Bundle.main for swiftc compatibility.
+  # Bundle.module is a SwiftPM feature; swiftc needs Bundle.main.
+  # Can be removed once v1.51.2+ ships with the fix merged.
+  patch :DATA
+
   def install
-    # Install the Python CLI into a virtualenv (zero runtime dependencies)
     venv = virtualenv_create(libexec, "python3.13")
     venv.pip_install buildpath
 
@@ -18,10 +22,6 @@ class Vaara < Formula
       bin.install_symlink libexec/"bin"/cmd
     end
 
-    # On macOS, also build and install the menu-bar app from source.
-    # Compiles directly with swiftc (bypassing SwiftPM to avoid the
-    # double-sandbox issue with Homebrew). Builds locally, so no
-    # Gatekeeper quarantine and no Developer ID needed.
     on_macos do
       cd "clients/macos" do
         src = "Sources/VaaraMenuBar"
@@ -86,3 +86,22 @@ class Vaara < Formula
     end
   end
 end
+
+__END__
+diff --git a/clients/macos/Sources/VaaraMenuBar/VaaraApp.swift b/clients/macos/Sources/VaaraMenuBar/VaaraApp.swift
+--- a/clients/macos/Sources/VaaraMenuBar/VaaraApp.swift
++++ b/clients/macos/Sources/VaaraMenuBar/VaaraApp.swift
+@@ -33,9 +33,10 @@
+     }
+ 
+     private func markImage(for state: GateState) -> NSImage {
+-        if let url = Bundle.module.url(
+-            forResource: "icons/vaara-\(state.rawValue)", withExtension: "png"),
+-           let img = NSImage(contentsOf: url) {
++        let bundle = Bundle.main
++        let resourcePath = bundle.resourcePath ?? ""
++        let iconPath = "\(resourcePath)/icons/vaara-\(state.rawValue).png"
++        if let img = NSImage(contentsOfFile: iconPath) {
+             return img
+         }
+         let color = stateColor(state)
