@@ -19,21 +19,24 @@ class Vaara < Formula
     end
 
     # On macOS, also build and install the menu-bar app from source.
-    # Builds locally with just Xcode Command Line Tools, so no Gatekeeper
-    # quarantine and no Developer ID needed.
+    # Compiles directly with swiftc (bypassing SwiftPM to avoid the
+    # double-sandbox issue with Homebrew). Builds locally, so no
+    # Gatekeeper quarantine and no Developer ID needed.
     on_macos do
       cd "clients/macos" do
-        system "swift", "build", "-c", "release"
+        src = "Sources/VaaraMenuBar"
+        swift_files = Dir["#{src}/*.swift"]
+        binary = buildpath/"VaaraMenuBar"
 
-        binary = ".build/release/VaaraMenuBar"
-        bundle = Dir[".build/release/*VaaraMenuBar*.bundle"].first
+        system "swiftc", "-O", "-target", "arm64-apple-macos13.0",
+               "-o", binary, *swift_files
 
         app = prefix/"Vaara.app"
         (app/"Contents/MacOS").mkpath
         (app/"Contents/Resources").mkpath
 
         cp binary, app/"Contents/MacOS/Vaara"
-        cp bundle, app/"Contents/MacOS/" if bundle && File.exist?(bundle)
+        cp "#{src}/Resources/icons", app/"Contents/Resources/icons", recursive: true
         cp "AppIcon.icns", app/"Contents/Resources/"
 
         (app/"Contents/Info.plist").write <<~PLIST
