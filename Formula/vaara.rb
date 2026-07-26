@@ -9,9 +9,6 @@ class Vaara < Formula
 
   depends_on "python@3.13"
 
-  # Patch Bundle.module -> Bundle.main for swiftc compatibility.
-  # Bundle.module is a SwiftPM feature; swiftc needs Bundle.main.
-  # Can be removed once v1.51.2+ ships with the fix merged.
   patch :DATA
 
   def install
@@ -36,7 +33,7 @@ class Vaara < Formula
         (app/"Contents/Resources").mkpath
 
         cp binary, app/"Contents/MacOS/Vaara"
-        cp "#{src}/Resources/icons", app/"Contents/Resources/icons", recursive: true
+        cp_r "#{src}/Resources/icons", app/"Contents/Resources/icons"
         cp "AppIcon.icns", app/"Contents/Resources/"
 
         (app/"Contents/Info.plist").write <<~PLIST
