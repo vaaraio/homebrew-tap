@@ -10,9 +10,9 @@ brew trust vaaraio/tap
 brew install vaara
 ```
 
-Recent Homebrew versions require the `brew trust` step once for any tap outside homebrew-core; if your brew has no `trust` command, skip that line.
+Recent Homebrew versions require the `brew trust` step once for any tap outside home-core; if your brew has no `trust` command, skip that line.
 
-This installs the `vaara`, `vaara-audit`, `vaara-mcp-proxy`, and `vaara-mcp-server` commands. The core has no Python dependencies beyond the interpreter.
+This installs the `vaara`, `vaara-audit`, `vaara-mcp-proxy`, and `vaara-mcp-server` commands, plus the **Vaara macOS menu-bar app** (built from source, no Gatekeeper issues). The core has no Python dependencies beyond the interpreter.
 
 Optional extras (the ML classifier, signed export, and others) are pip features rather than brew ones; for those, use a virtualenv and `pip install 'vaara[export]'` as described in the [main README](https://github.com/vaaraio/vaara#readme).
 
