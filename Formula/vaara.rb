@@ -20,7 +20,12 @@ class Vaara < Formula
     on_macos do
       cd "clients/macos" do
         src = "Sources/VaaraMenuBar"
-        swift_files = Dir["#{src}/*.swift"]
+        # Sources/Shared holds the XPC protocol, the policy client and the
+        # governed-host list. The app target references those symbols, so
+        # both directories have to be compiled into this single module.
+        # Globbing only Sources/VaaraMenuBar breaks the build.
+        swift_files = Dir["#{src}/*.swift"] + Dir["Sources/Shared/*.swift"]
+        odie "no Swift sources found under clients/macos/Sources" if swift_files.empty?
         binary = buildpath/"VaaraMenuBar"
 
         system "swiftc", "-O", "-target", "arm64-apple-macos13.0",
