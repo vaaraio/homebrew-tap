@@ -40,7 +40,17 @@ class Vaara < Formula
         odie "no Swift sources found under clients/macos/Sources" if swift_files.empty?
         binary = buildpath/"VaaraMenuBar"
 
+        # Homebrew's build environment hands swiftc the Command Line Tools
+        # SDK even when Xcode is installed, and swiftc looks for the SwiftUI
+        # macro plugin relative to the SDK it was given. The plugin lives only
+        # under Xcode's platform directory, so both are named explicitly.
+        xcode_dev = MacOS::Xcode.prefix
+        macos_platform = xcode_dev/"Platforms/MacOSX.platform/Developer"
+        sdk = Dir[macos_platform/"SDKs/MacOSX*.sdk"].max
+        odie "no macOS SDK under #{macos_platform}" if sdk.nil?
+        plugins = macos_platform/"usr/lib/swift/host/plugins"
         system "swiftc", "-O", "-target", "arm64-apple-macos13.0",
+               "-sdk", sdk, "-plugin-path", plugins,
                "-o", binary, *swift_files
 
         app = prefix/"Vaara.app"
