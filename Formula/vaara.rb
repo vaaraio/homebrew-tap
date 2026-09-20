@@ -18,6 +18,18 @@ class Vaara < Formula
     end
 
     on_macos do
+      # The menu bar app is SwiftUI. From the macOS 27 toolchain onwards the
+      # State property wrapper is a compiler macro whose plugin ships inside
+      # Xcode.app and not in the Command Line Tools, so a bare swiftc fails
+      # with "plugin for module 'SwiftUIMacros' not found" (brew build of
+      # 1.89.0, 2026-09-20). Build the app only when Xcode is present and let
+      # the CLI install on its own otherwise. The caveat says how to get the app.
+      unless MacOS::Xcode.installed?
+        opoo "Xcode is not installed, so the Vaara menu bar app was not built. " \
+             "The vaara CLI is installed. Install Xcode from the App Store and " \
+             "run `brew reinstall vaara` to get the app."
+        next
+      end
       cd "clients/macos" do
         src = "Sources/VaaraMenuBar"
         # Sources/Shared holds the XPC protocol, the policy client and the
@@ -66,6 +78,14 @@ class Vaara < Formula
 
   def caveats
     on_macos do
+      unless (opt_prefix/"Vaara.app").exist?
+        return <<~EOS
+          The Vaara CLI is installed. The menu bar app was not built because
+          Xcode is not installed: on macOS 27 and later the SwiftUI compiler
+          plugin ships only with Xcode. Install Xcode from the App Store, then
+          run `brew reinstall vaara`.
+        EOS
+      end
       <<~EOS
         The Vaara menu-bar app is installed to:
           #{opt_prefix}/Vaara.app
