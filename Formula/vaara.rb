@@ -3,8 +3,8 @@ class Vaara < Formula
 
   desc "Tamper-evident runtime evidence layer for AI agents"
   homepage "https://vaara.io"
-  url "https://files.pythonhosted.org/packages/b6/3a/df7626bd49eb9aedebf5e50cf50a9ed25a069360eac6772793d28bf1f81f/vaara-1.91.0.tar.gz"
-  sha256 "0c2f568c386b3df41a46377231c6f0600adc4a864400b3b6faa7add34706960d"
+  url "https://files.pythonhosted.org/packages/5a/23/a0df9a8582afacd49871a1dfd2317ec982ee70716ecdc68f8ee34a93145c/vaara-1.92.0.tar.gz"
+  sha256 "f4418a86bc0b9198e6e70c047a4d7a39539da698a456ebcd86ea13e368499cba"
   license "AGPL-3.0-or-later"
 
   depends_on "python@3.13"
