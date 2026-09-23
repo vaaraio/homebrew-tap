@@ -22,4 +22,4 @@ Optional extras (the ML classifier, signed export, and others) are pip features 
 vaara version
 ```
 
-Releases on PyPI carry SLSA Build Level 3 provenance; see [signing-keys.md](https://github.com/vaaraio/vaara/blob/main/docs/signing-keys.md) for release verification.
+Every Vaara release carries SLSA v1 build provenance (Build Level 2), and the PyPI wheel is the same file as the attested one. [Verifying a Vaara release](https://github.com/vaaraio/vaara/blob/main/docs/signing-keys.md#verifying-a-vaara-release) has the command.
