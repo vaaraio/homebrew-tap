@@ -7,10 +7,27 @@ class Vaara < Formula
   sha256 "4d47396c5077f0ccde90af692c0c144bc517d9741266e92b651cb0f02bb500e2"
   license "AGPL-3.0-or-later"
 
+  # cbor2 6 is a Rust extension with no pure-Python fallback.
+  depends_on "rust" => :build
+  depends_on "cryptography"
   depends_on "python@3.13"
+
+  # The receipt signing libraries are base dependencies from 2.2.0. Homebrew
+  # installs with --no-deps, so they are named here: cryptography comes from
+  # its formula, cbor2 and rfc8785 as resources.
+  resource "cbor2" do
+    url "https://files.pythonhosted.org/packages/c6/14/b02446bacfe44351b1689c04937ade007588f44570431880a6937e525e6c/cbor2-6.1.4.tar.gz"
+    sha256 "01ecc79a28f33d17331943ce508fc1e21f4b06553c73f874f4c77120d72b2ef9"
+  end
+
+  resource "rfc8785" do
+    url "https://files.pythonhosted.org/packages/ef/2f/fa1d2e740c490191b572d33dbca5daa180cb423c24396b856f5886371d8b/rfc8785-0.1.4.tar.gz"
+    sha256 "e545841329fe0eee4f6a3b44e7034343100c12b4ec566dc06ca9735681deb4da"
+  end
 
   def install
     venv = virtualenv_create(libexec, "python3.13")
+    venv.pip_install resources
     venv.pip_install buildpath
 
     %w[vaara vaara-audit vaara-mcp-proxy vaara-mcp-server].each do |cmd|
@@ -111,6 +128,7 @@ class Vaara < Formula
 
   test do
     assert_match version.to_s, shell_output("#{bin}/vaara version")
+    system libexec/"bin/python", "-c", "import cbor2, cryptography, rfc8785"
     on_macos do
       assert_predicate prefix/"Vaara.app/Contents/MacOS/Vaara", :exist?
     end
