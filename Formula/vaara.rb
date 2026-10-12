@@ -3,8 +3,8 @@ class Vaara < Formula
 
   desc "Tamper-evident runtime evidence layer for AI agents"
   homepage "https://vaara.io"
-  url "https://files.pythonhosted.org/packages/1f/d7/29711198e057c78406843ea17963ab43a75e231b646157c8a1b27b748ae7/vaara-2.10.0.tar.gz"
-  sha256 "959b241baa7502e2d998d97204c372e3ba03c7179f8688130244c16f5d3b69b0"
+  url "https://files.pythonhosted.org/packages/61/51/00ffc6a2fd715a08c88e515ffba6dba56487aea36813d19ea69cea0a298f/vaara-2.11.0.tar.gz"
+  sha256 "2ce2ed648180148451c79c9d58654edacf8eddcbb96520345d8ed1cc876ecd29"
   license "AGPL-3.0-or-later"
 
   # cbor2 6 is a Rust extension with no pure-Python fallback.
